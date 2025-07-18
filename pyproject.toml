@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=60", "setuptools-scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gulp-api-client"
+dynamic = ["version"]
+authors = [{ name = "Mentat", email = "info@mentat.is" }]
+description = "gulp API client"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
