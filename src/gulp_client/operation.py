@@ -190,6 +190,66 @@ class GulpAPIOperation:
         return res
 
     @staticmethod
+    async def context_create(
+        token: str,
+        operation_id: str,
+        context_name: str,
+        color: str = None,
+        glyph_id: str = None,
+        fail_if_exists: bool = False,
+        req_id: str = None,
+        ws_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "operation_id": operation_id,
+            "context_name": context_name,
+            "color": color or "white",
+            "glyph_id": glyph_id,
+            "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
+            "fail_if_exists": fail_if_exists,
+        }
+        return await api_common.make_request(
+            "POST",
+            "context_create",
+            params=params,
+            body={},
+            token=token,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def context_update(
+        token: str,
+        context_id: str,
+        color: str = None,
+        glyph_id: str = None,
+        description: str = None,
+        req_id: str = None,
+        ws_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "context_id": context_id,
+            "color": color,
+            "glyph_id": glyph_id,
+            "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
+        }
+        body = description
+        return await api_common.make_request(
+            "PATCH",
+            "context_update",
+            params=params,
+            body=body,
+            token=token,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
     async def context_delete(
         token: str,
         operation_id: str,
@@ -251,6 +311,69 @@ class GulpAPIOperation:
             "GET",
             "source_get_by_id",
             params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def source_create(
+        token: str,
+        operation_id: str,
+        context_id: str,
+        source_name: str,
+        color: str = None,
+        glyph_id: str = None,
+        fail_if_exists: bool = False,
+        req_id: str = None,
+        ws_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "operation_id": operation_id,
+            "context_id": context_id,
+            "source_name": source_name,
+            "color": color or "purple",
+            "glyph_id": glyph_id,
+            "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
+            "fail_if_exists": fail_if_exists,
+        }
+        return await api_common.make_request(
+            "POST",
+            "source_create",
+            params=params,
+            body={},
+            token=token,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def source_update(
+        token: str,
+        source_id: str,
+        color: str = None,
+        glyph_id: str = None,
+        description: str = None,
+        req_id: str = None,
+        ws_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "source_id": source_id,
+            "color": color,
+            "glyph_id": glyph_id,
+            "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
+        }
+        body = description
+
+        return await api_common.make_request(
+            "PATCH",
+            "source_update",
+            params=params,
+            body=body,
             token=token,
             expected_status=expected_status,
         )

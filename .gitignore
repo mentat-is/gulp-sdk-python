@@ -1,0 +1,25 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+pyrightconfig.json
+venv
+
+# VSCode
+.vscode/
+
+# symlinks
+muty-python
+
+#auto generated docs
+docs/html
+.VSCodeCounter
+
+# misc
+*.egg-info
+test.py
+build
+.DS_Store
+*log*.txt
