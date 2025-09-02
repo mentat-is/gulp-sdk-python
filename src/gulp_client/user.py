@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from muty.log import MutyLogger
 
@@ -101,10 +101,12 @@ class GulpAPIUser:
 
     @staticmethod
     async def user_get_by_id(
-        token: str, user_id: str, req_id: str = None, expected_status: int = 200
+        token: str, user_id: str = None, req_id: str = None, expected_status: int = 200
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
-        params = {"user_id": user_id, "req_id": req_id or api_common.req_id}
+        params = {"req_id": req_id or api_common.req_id}
+        if user_id:
+            params["user_id"] = user_id
         res = await api_common.make_request(
             "GET",
             "user_get_by_id",
@@ -132,7 +134,7 @@ class GulpAPIUser:
     @staticmethod
     async def user_update(
         token: str,
-        username: str,
+        user_id: str = None,
         password: Optional[str] = None,
         permission: Optional[list[str]] = None,
         email: Optional[str] = None,
@@ -144,7 +146,7 @@ class GulpAPIUser:
         api_common = GulpAPICommon.get_instance()
         body = {}
         params = {
-            "user_id": username,
+            "user_id": user_id,
             "merge_user_data": merge_user_data,
             "req_id": req_id or api_common.req_id,
         }
@@ -206,6 +208,84 @@ class GulpAPIUser:
             "user_create",
             params=params,
             body=body,
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
+    async def user_get_data(
+        token: str,
+        key: Optional[str] = None,
+        user_id: str = None,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "req_id": req_id or api_common.req_id,
+        }
+        if key:
+            params["key"] = key
+        if user_id:
+            params["user_id"] = user_id
+        res = await api_common.make_request(
+            "GET",
+            "user_get_data",
+            params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
+    async def user_set_data(
+        token: str,
+        key: str,
+        value: Any,
+        user_id: str = None,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "key": key,
+            "req_id": req_id or api_common.req_id,
+        }
+        if user_id:
+            params["user_id"] = user_id
+        body = value
+
+        res = await api_common.make_request(
+            "PATCH",
+            "user_set_data",
+            params=params,
+            body=body,
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
+    async def user_delete_data(
+        token: str,
+        key: Optional[str] = None,
+        user_id: str = None,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "req_id": req_id or api_common.req_id,
+        }
+        if key:
+            params["key"] = key
+        if user_id:
+            params["user_id"] = user_id
+        res = await api_common.make_request(
+            "DELETE",
+            "user_delete_data",
+            params=params,
             token=token,
             expected_status=expected_status,
         )

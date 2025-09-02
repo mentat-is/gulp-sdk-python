@@ -14,6 +14,76 @@ class GulpAPIIngest:
     """Bindings to call gulp's ingest related API endpoints"""
 
     @staticmethod
+    async def ingest_file_to_source(
+        token: str,
+        file_path: str,
+        source_id: str,
+        plugin: str = None,
+        file_total: int = 1,
+        flt: Optional[GulpIngestionFilter] = None,
+        plugin_params: Optional[GulpPluginParameters] = None,
+        ws_id: str = None,
+        req_id: str = None,
+        restart_from: int = 0,
+        file_sha1: str = None,
+        total_file_size: int = 0,
+        expected_status: int = 200,
+        preview_mode: bool = False,
+    ) -> dict:
+        """Ingest a file to a specific source within a context (the context and source are created if they do not exist)"""
+        api_common = GulpAPICommon.get_instance()
+
+        if not total_file_size:
+            total_file_size = os.path.getsize(file_path)
+
+        if not file_sha1:
+            file_sha1 = await muty.crypto.hash_sha1_file(file_path)
+
+        params = {
+            "source_id": source_id,
+            "plugin": plugin,
+            "preview_mode": preview_mode,
+            "ws_id": ws_id or api_common.ws_id,
+            "req_id": req_id or api_common.req_id,
+            "file_total": file_total,
+        }
+
+        payload = {
+            "flt": flt.model_dump(exclude_none=True) if flt else {},
+            "file_sha1": file_sha1,
+            "plugin_params": (
+                plugin_params.model_dump(exclude_none=True) if plugin_params else {}
+            ),
+            "original_file_path": file_path,
+        }
+
+        f = open(file_path, "rb")
+        if restart_from > 0:
+            # advance to the restart offset
+            f.seek(restart_from)
+
+        files = {
+            "payload": ("payload.json", json.dumps(payload), "application/json"),
+            "f": (
+                os.path.basename(file_path),
+                f,
+                "application/octet-stream",
+            ),
+        }
+
+        headers = {"size": str(total_file_size), "continue_offset": str(restart_from)}
+
+        return await api_common.make_request(
+            "POST",
+            "ingest_file_to_source",
+            params=params,
+            token=token,
+            files=files,
+            headers=headers,
+            expected_status=expected_status,
+    )
+
+    @staticmethod
     async def ingest_file(
         token: str,
         file_path: str,
@@ -124,6 +194,50 @@ class GulpAPIIngest:
         return await api_common.make_request(
             "POST",
             "ingest_file_local",
+            params=params,
+            token=token,
+            body=body,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def ingest_file_local_to_source(
+        token: str,
+        file_path: str,
+        source_id: str,
+        plugin: str = None,
+        file_total: int = 1,
+        flt: Optional[GulpIngestionFilter] = None,
+        plugin_params: Optional[GulpPluginParameters] = None,
+        delete_after: bool = False,
+        ws_id: str = None,
+        req_id: str = None,
+        expected_status: int = 200,
+        preview_mode: bool = False,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+
+        params = {
+            "source_id": source_id,
+            "plugin": plugin,
+            "path": file_path,
+            "preview_mode": preview_mode,
+            "ws_id": ws_id or api_common.ws_id,
+            "req_id": req_id or api_common.req_id,
+            "file_total": file_total,
+            "delete_after": delete_after,
+        }
+
+        body = {
+            "flt": flt.model_dump(exclude_none=True) if flt else {},
+            "plugin_params": (
+                plugin_params.model_dump(exclude_none=True) if plugin_params else {}
+            ),
+        }
+
+        return await api_common.make_request(
+            "POST",
+            "ingest_file_local_to_source",
             params=params,
             token=token,
             body=body,

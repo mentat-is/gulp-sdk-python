@@ -55,13 +55,12 @@ class GulpAPIDb:
         return res
 
     @staticmethod
-    async def opensearch_rebase_index(
+    async def opensearch_rebase_by_query(
         token: str,
         operation_id: str,
-        dest_index: str,
         offset_msec: int,
+        script: str = None,
         flt: GulpQueryFilter = None,
-        rebase_script: str = None,
         req_id: str = None,
         ws_id: str = None,
         expected_status: int = 200,
@@ -69,7 +68,6 @@ class GulpAPIDb:
         api_common = GulpAPICommon.get_instance()
         params = {
             "operation_id": operation_id,
-            "dest_index": dest_index,
             "offset_msec": offset_msec,
             "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
@@ -78,12 +76,12 @@ class GulpAPIDb:
         body = {}
         if flt:
             body["flt"] = flt.model_dump(exclude_none=True)
-        if rebase_script:
-            body["rebase_script"] = rebase_script
+        if script:
+            body["script"] = script
 
         res = await api_common.make_request(
             "POST",
-            "opensearch_rebase_index",
+            "opensearch_rebase_by_query",
             params=params,
             body=body,
             token=token,

@@ -68,7 +68,9 @@ async def _ensure_reset() -> None:
     await GulpAPIDb.gulp_reset(admin_token, create_default_operation=True)
 
 
-async def _ensure_test_operation(delete_data: bool = True) -> None:
+async def _ensure_test_operation(
+    delete_data: bool = True, log_request: bool = False, log_response: bool = False
+) -> None:
     """
     ensure that the test operation exists and its clean
 
@@ -76,7 +78,12 @@ async def _ensure_test_operation(delete_data: bool = True) -> None:
         delete_data: if True, delete the data in the operation on OpenSearch
     """
     GulpAPICommon.get_instance().init(
-        host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
+        host=TEST_HOST,
+        ws_id=TEST_WS_ID,
+        req_id=TEST_REQ_ID,
+        index=TEST_INDEX,
+        log_request=log_request,
+        log_response=log_response,
     )
     from gulp_client.db import GulpAPIDb
     from gulp_client.user import GulpAPIUser
