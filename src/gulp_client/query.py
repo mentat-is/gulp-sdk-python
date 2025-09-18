@@ -25,7 +25,6 @@ class GulpAPIQuery:
         context_id: str,
         source_id: str,
         req_id: str = None,
-        ws_id: str = None,
         expected_status: int = 200,
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
@@ -33,7 +32,6 @@ class GulpAPIQuery:
             "operation_id": operation_id,
             "context_id": context_id,
             "source_id": source_id,
-            "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
 

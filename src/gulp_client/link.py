@@ -56,6 +56,7 @@ class GulpAPILink:
     async def link_update(
         token: str,
         obj_id: str,
+        operation_id: str,
         doc_ids: list = None,
         name: str = None,
         description: str = None,
@@ -71,6 +72,7 @@ class GulpAPILink:
             "obj_id": obj_id,
             "ws_id": ws_id or api_common.ws_id,
             "name": name,
+            "operation_id": operation_id,
             "description": description,
             "color": color,
             "glyph_id": glyph_id,
@@ -96,6 +98,7 @@ class GulpAPILink:
     async def link_delete(
         token: str,
         obj_id: str,
+        operation_id: str,
         req_id: str = None,
         ws_id: str = None,
         expected_status: int = 200,
@@ -104,6 +107,7 @@ class GulpAPILink:
         return await api_common.object_delete(
             token=token,
             obj_id=obj_id,
+            operation_id=operation_id,
             api="link_delete",
             req_id=req_id,
             ws_id=ws_id,
@@ -114,6 +118,7 @@ class GulpAPILink:
     async def link_get_by_id(
         token: str,
         obj_id: str,
+        operation_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -121,6 +126,7 @@ class GulpAPILink:
         return await api_common.object_get_by_id(
             token=token,
             obj_id=obj_id,
+            operation_id=operation_id,
             api="link_get_by_id",
             req_id=req_id,
             expected_status=expected_status,
@@ -129,6 +135,7 @@ class GulpAPILink:
     @staticmethod
     async def link_list(
         token: str,
+        operation_id: str,
         flt: GulpCollabFilter = None,
         req_id: str = None,
         expected_status: int = 200,
@@ -138,6 +145,7 @@ class GulpAPILink:
             token=token,
             api="link_list",
             flt=flt,
+            operation_id=operation_id,
             req_id=req_id,
             expected_status=expected_status,
         )

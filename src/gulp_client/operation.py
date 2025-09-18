@@ -95,6 +95,7 @@ class GulpAPIOperation:
         operation_id: str,
         delete_data: bool = True,
         req_id: str = None,
+        ws_id: str = None,
         expected_status: int = 200,
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
@@ -102,6 +103,7 @@ class GulpAPIOperation:
         params = {
             "operation_id": operation_id,
             "delete_data": delete_data,
+            "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
 
@@ -256,6 +258,7 @@ class GulpAPIOperation:
         context_id: str,
         delete_data: bool = True,
         req_id: str = None,
+        ws_id: str = None,
         expected_status: int = 200,
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
@@ -264,6 +267,7 @@ class GulpAPIOperation:
             "context_id": context_id,
             "delete_data": delete_data,
             "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
         }
         return await api_common.make_request(
             "DELETE",
@@ -386,6 +390,7 @@ class GulpAPIOperation:
         source_id: str,
         delete_data: bool = True,
         req_id: str = None,
+        ws_id: str = None,
         expected_status: int = 200,
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
@@ -395,6 +400,7 @@ class GulpAPIOperation:
             "source_id": source_id,
             "delete_data": delete_data,
             "req_id": req_id or api_common.req_id,
+            "ws_id": ws_id or api_common.ws_id,
         }
         return await api_common.make_request(
             "DELETE",

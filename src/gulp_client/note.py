@@ -61,6 +61,7 @@ class GulpAPINote:
     async def note_update(
         token: str,
         obj_id: str,
+        operation_id: str,
         text: str = None,
         time_pin: int = None,
         doc: dict = None,
@@ -75,6 +76,7 @@ class GulpAPINote:
         api_common = GulpAPICommon.get_instance()
         params = {
             "obj_id": obj_id,
+            "operation_id": operation_id,
             "time_pin": time_pin,
             "color": color,
             "name": name,
@@ -102,6 +104,7 @@ class GulpAPINote:
     async def note_delete(
         token: str,
         obj_id: str,
+        operation_id: str,
         req_id: str = None,
         ws_id: str = None,
         expected_status: int = 200,
@@ -110,6 +113,7 @@ class GulpAPINote:
         return await api_common.object_delete(
             token=token,
             obj_id=obj_id,
+            operation_id=operation_id,
             req_id=req_id,
             ws_id=ws_id,
             api="note_delete",
@@ -120,6 +124,7 @@ class GulpAPINote:
     async def note_get_by_id(
         token: str,
         obj_id: str,
+        operation_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -127,6 +132,7 @@ class GulpAPINote:
         return await api_common.object_get_by_id(
             token=token,
             obj_id=obj_id,
+            operation_id=operation_id,
             req_id=req_id,
             api="note_get_by_id",
             expected_status=expected_status,
@@ -135,6 +141,7 @@ class GulpAPINote:
     @staticmethod
     async def note_list(
         token: str,
+        operation_id: str,
         flt: GulpCollabFilter = None,
         req_id: str = None,
         expected_status: int = 200,
@@ -144,6 +151,7 @@ class GulpAPINote:
             token=token,
             api="note_list",
             flt=flt,
+            operation_id=operation_id,
             req_id=req_id,
             expected_status=expected_status,
         )

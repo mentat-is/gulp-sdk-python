@@ -22,50 +22,59 @@ from gulp.api.ws_api import GulpWsAuthPacket
 from gulp.structs import GulpPluginParameters
 
 
-async def _test_init(
-    login_admin_and_reset_operation: bool = True,
-    recreate: bool = False,
-    reset_collab: bool = False,
-) -> None:
+async def _ensure_test_users(
+    admin_token: str = None,
+    init_api: bool = False,
+    log_request: bool = False,
+    log_response: bool = False,
+):
     """
-    initialize the environment, automatically called before each test by the _setup() fixture
+    ensure that the test users exist
+    """
 
-    :param login_admin_and_reset_operation: if True, login as admin and reset the operation
-    :param recreate: if True, recreate the operation
-    :param reset_collab: if True, reset the collab db
-    """
-    GulpAPICommon.get_instance().init(
-        host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
-    )
-    from gulp_client.db import GulpAPIDb
     from gulp_client.user import GulpAPIUser
 
-    if reset_collab:
-        # reset the collab
-        admin_token = await GulpAPIUser.login("admin", "admin")
-        assert admin_token
-        await GulpAPIDb.gulp_reset(admin_token)
-
-    if login_admin_and_reset_operation:
-        await GulpAPIUser.login_admin_and_reset_operation(
-            TEST_OPERATION_ID, recreate=recreate
+    if init_api:
+        GulpAPICommon.get_instance().init(
+            host=TEST_HOST,
+            ws_id=TEST_WS_ID,
+            req_id=TEST_REQ_ID,
+            index=TEST_INDEX,
+            log_request=log_request,
+            log_response=log_response,
         )
 
+    if not admin_token:
+        admin_token = await GulpAPIUser.login_admin()
+        assert admin_token
 
-async def _ensure_reset() -> None:
-    """
-    ensure both opensearch and postgres collab db are reset, and the test operation exists
-    """
-    GulpAPICommon.get_instance().init(
-        host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
+    # ensure deletion of test users if they exist
+    try:
+        await GulpAPIUser.user_delete(admin_token, "editor")
+    except Exception:
+        pass
+    try:
+        await GulpAPIUser.user_delete(admin_token, "ingest")
+    except Exception:
+        pass
+    try:
+        await GulpAPIUser.user_delete(admin_token, "power")
+    except Exception:
+        pass
+
+    # create users
+    res = await GulpAPIUser.user_create(
+        admin_token, "editor", "editor", ["read", "edit"]
     )
-    from gulp_client.db import GulpAPIDb
-    from gulp_client.user import GulpAPIUser
-
-    admin_token = await GulpAPIUser.login_admin()
-    assert admin_token
-
-    await GulpAPIDb.gulp_reset(admin_token, create_default_operation=True)
+    assert res["id"] == "editor"
+    res = await GulpAPIUser.user_create(
+        admin_token, "ingest", "ingest", ["read", "edit", "ingest"]
+    )
+    assert res["id"] == "ingest"
+    res = await GulpAPIUser.user_create(
+        admin_token, "power", "power", ["read", "edit", "delete"]
+    )
+    assert res["id"] == "power"
 
 
 async def _ensure_test_operation(
@@ -85,13 +94,15 @@ async def _ensure_test_operation(
         log_request=log_request,
         log_response=log_response,
     )
-    from gulp_client.db import GulpAPIDb
     from gulp_client.user import GulpAPIUser
     from gulp_client.operation import GulpAPIOperation
 
     # check if the test operation exists
     admin_token = await GulpAPIUser.login_admin()
     assert admin_token
+
+    # ensure test users exists
+    await _ensure_test_users(admin_token)
 
     # this may fail if operation does not exist
     try:
@@ -440,6 +451,7 @@ class GulpAPICommon:
         token: str,
         obj_id: str,
         api: str,
+        operation_id: str = None,
         req_id: str = None,
         ws_id: str = None,
         expected_status: int = 200,
@@ -447,12 +459,16 @@ class GulpAPICommon:
         """
         common object deletion
         """
-        MutyLogger.get_instance().info(f"Deleting object {obj_id}, api={api}...")
+        MutyLogger.get_instance().info(
+            f"Deleting object {obj_id}, operation_id={operation_id}, api={api}..."
+        )
         params = {
             "obj_id": obj_id,
-            "ws_id": req_id or self.ws_id,
+            "ws_id": ws_id or self.ws_id,
             "req_id": req_id or self.req_id,
         }
+        if operation_id:
+            params["operation_id"] = operation_id
         res = await self.make_request(
             "DELETE", api, params=params, token=token, expected_status=expected_status
         )
@@ -463,6 +479,7 @@ class GulpAPICommon:
         token: str,
         obj_id: str,
         api: str,
+        operation_id: str = None,
         req_id: str = None,
         expected_status: int = 200,
         **kwargs,
@@ -470,8 +487,17 @@ class GulpAPICommon:
         """
         common object get
         """
-        MutyLogger.get_instance().info(f"Getting object {obj_id}, api={api}...")
-        params = {"obj_id": obj_id, "req_id": req_id or self.req_id, **kwargs}
+        MutyLogger.get_instance().info(
+            f"Getting object {obj_id}, operation_id={operation_id}, api={api}..."
+        )
+        params = {
+            "obj_id": obj_id,
+            "req_id": req_id or self.req_id,
+            **kwargs,
+        }
+        if operation_id:
+            params["operation_id"] = operation_id
+
         res = await self.make_request(
             "GET",
             api,
@@ -485,6 +511,7 @@ class GulpAPICommon:
         self,
         token: str,
         api: str,
+        operation_id: str = None,
         flt: GulpCollabFilter = None,
         req_id: str = None,
         expected_status: int = 200,
@@ -492,11 +519,18 @@ class GulpAPICommon:
         """
         common object list
         """
-        MutyLogger.get_instance().info("Listing objects: api=%s ..." % (api))
+        MutyLogger.get_instance().info(
+            "Listing objects for operation_id=%s, flt=%s, : api=%s ..."
+            % (operation_id, flt, api)
+        )
+        params = {"req_id": req_id or self.req_id}
+        if operation_id:
+            params["operation_id"] = operation_id
+
         res = await self.make_request(
             "POST",
             api,
-            params={"req_id": req_id or self.req_id},
+            params=params,
             body=(
                 flt.model_dump(by_alias=True, exclude_none=True, exclude_defaults=True)
                 if flt
