@@ -12,7 +12,7 @@ class GulpAPIStoredQuery:
         token: str,
         name: str,
         q: str,
-        is_sigma: bool = False,
+        q_type: str = "raw",
         q_groups: list[str] = None,
         plugin_params: dict = None,
         tags: list[str] = None,
@@ -30,7 +30,7 @@ class GulpAPIStoredQuery:
             "req_id": req_id or api_common.req_id,
             "glyph_id": glyph_id,
             "private": private,
-            "is_sigma": is_sigma,
+            "q_type": q_type,
         }
 
         body = {
@@ -57,7 +57,7 @@ class GulpAPIStoredQuery:
         obj_id: str,
         name: str = None,
         q: str = None,
-        is_sigma: bool = False,
+        q_type: str = None,
         q_groups: list[str] = None,
         plugin_params: dict = None,
         tags: list[str] = None,
@@ -73,7 +73,7 @@ class GulpAPIStoredQuery:
             "name": name,
             "req_id": req_id or api_common.req_id,
             "glyph_id": glyph_id,
-            "is_sigma": is_sigma,
+            "q_type": q_type,
         }
 
         body = {

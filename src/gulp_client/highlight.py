@@ -54,7 +54,6 @@ class GulpAPIHighlight:
     async def highlight_update(
         token: str,
         obj_id: str,
-        operation_id: str,
         time_range: tuple[int, int] = None,
         name: str = None,
         description: str = None,
@@ -72,7 +71,6 @@ class GulpAPIHighlight:
             "obj_id": obj_id,
             "ws_id": ws_id or api_common.ws_id,
             "name": name,
-            "operation_id": operation_id,
             "description": description,
             "private": private,
             "glyph_id": glyph_id,
@@ -99,7 +97,6 @@ class GulpAPIHighlight:
     async def highlight_delete(
         token: str,
         obj_id: str,
-        operation_id: str,
         ws_id: str = None,
         req_id: str = None,
         expected_status: int = 200,
@@ -107,7 +104,6 @@ class GulpAPIHighlight:
         api_common = GulpAPICommon.get_instance()
         params = {
             "obj_id": obj_id,
-            "operation_id": operation_id,
             "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
@@ -123,7 +119,6 @@ class GulpAPIHighlight:
     async def highlight_get_by_id(
         token: str,
         obj_id: str,
-        operation_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -131,7 +126,6 @@ class GulpAPIHighlight:
         return await api_common.object_get_by_id(
             token=token,
             obj_id=obj_id,
-            operation_id=operation_id,
             req_id=req_id,
             api="highlight_get_by_id",
             expected_status=expected_status,

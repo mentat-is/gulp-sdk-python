@@ -153,13 +153,13 @@ class GulpAPIOperation:
     @staticmethod
     async def context_get_by_id(
         token: str,
-        src_id: str,
+        obj_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> list[dict]:
         api_common = GulpAPICommon.get_instance()
         params = {
-            "obj_id": src_id,
+            "obj_id": obj_id,
             "req_id": req_id or api_common.req_id,
         }
         return await api_common.make_request(
@@ -254,7 +254,6 @@ class GulpAPIOperation:
     @staticmethod
     async def context_delete(
         token: str,
-        operation_id: str,
         context_id: str,
         delete_data: bool = True,
         req_id: str = None,
@@ -263,7 +262,6 @@ class GulpAPIOperation:
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
         params = {
-            "operation_id": operation_id,
             "context_id": context_id,
             "delete_data": delete_data,
             "req_id": req_id or api_common.req_id,

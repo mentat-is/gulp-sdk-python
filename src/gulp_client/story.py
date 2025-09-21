@@ -56,7 +56,6 @@ class GulpAPIStory:
     async def story_update(
         token: str,
         obj_id: str,
-        operation_id: str,
         doc_ids: list[str] = None,
         highlight_ids: list[str] = None,
         include_whole_documents: bool = False,
@@ -73,7 +72,6 @@ class GulpAPIStory:
         params = {
             "obj_id": obj_id,
             "color": color,
-            "operation_id": operation_id,
             "name": name,
             "glyph_id": glyph_id,
             "include_whole_documents": include_whole_documents,
@@ -102,7 +100,6 @@ class GulpAPIStory:
     async def story_delete(
         token: str,
         obj_id: str,
-        operation_id: str,
         req_id: str = None,
         ws_id: str = None,
         expected_status: int = 200,
@@ -111,7 +108,6 @@ class GulpAPIStory:
         return await api_common.object_delete(
             token=token,
             obj_id=obj_id,
-            operation_id=operation_id,
             api="story_delete",
             req_id=req_id,
             ws_id=ws_id,
@@ -122,7 +118,6 @@ class GulpAPIStory:
     async def story_get_by_id(
         token: str,
         obj_id: str,
-        operation_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -130,7 +125,6 @@ class GulpAPIStory:
         return await api_common.object_get_by_id(
             token=token,
             obj_id=obj_id,
-            operation_id=operation_id,
             req_id=req_id,
             api="story_get_by_id",
             expected_status=expected_status,
