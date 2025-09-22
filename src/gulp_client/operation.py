@@ -57,6 +57,7 @@ class GulpAPIOperation:
     async def operation_update(
         token: str,
         operation_id: str,
+        name: str = None,
         index: str = None,
         description: str = None,
         operation_data: dict = None,
@@ -69,6 +70,7 @@ class GulpAPIOperation:
 
         params = {
             "operation_id": operation_id,
+            "name": name,
             "index": index,
             "glyph_id": glyph_id,
             "req_id": req_id or api_common.req_id,
