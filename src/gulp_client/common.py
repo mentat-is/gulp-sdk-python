@@ -7,7 +7,6 @@ from typing import Any
 import requests
 import websockets
 from muty.log import MutyLogger
-
 from gulp.api.collab.structs import GulpCollabFilter
 from gulp.api.opensearch.filters import GulpIngestionFilter
 from gulp_client.test_values import (
@@ -97,7 +96,6 @@ async def _ensure_test_operation(
     from gulp_client.user import GulpAPIUser
     from gulp_client.operation import GulpAPIOperation
 
-    # check if the test operation exists
     admin_token = await GulpAPIUser.login_admin()
     assert admin_token
 
@@ -124,6 +122,22 @@ async def _ensure_test_operation(
         create_index=create_index,
     )
     assert res["id"] == TEST_OPERATION_ID
+
+    # grant test users access to the operation
+    from gulp_client.object_acl import GulpAPIObjectACL
+
+    await GulpAPIObjectACL.object_add_granted_user(
+        admin_token, TEST_OPERATION_ID, "operation", "editor"
+    )
+    await GulpAPIObjectACL.object_add_granted_user(
+        admin_token, TEST_OPERATION_ID, "operation", "power"
+    )
+    await GulpAPIObjectACL.object_add_granted_user(
+        admin_token, TEST_OPERATION_ID, "operation", "guest"
+    )
+    await GulpAPIObjectACL.object_add_granted_user(
+        admin_token, TEST_OPERATION_ID, "operation", "ingest"
+    )
 
 
 def _process_file_in_worker_process(
