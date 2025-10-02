@@ -263,7 +263,7 @@ async def _test_ingest_ws_loop(
                 data = json.loads(response)
 
                 # wait for the stats update
-                if data["type"] == "stats_update":
+                if data["type"] == "collab_update":
                     # stats update
                     stats_packet = data["data"]["data"]
                     MutyLogger.get_instance().info(f"ingestion stats: {stats_packet}")
