@@ -63,7 +63,10 @@ async def _ensure_test_users(
 
     # create users
     res = await GulpAPIUser.user_create(
-        admin_token, "editor", "editor", ["read", "edit"]
+        admin_token,
+        "editor",
+        "editor",
+        ["read", "edit"],
     )
     assert res["id"] == "editor"
     res = await GulpAPIUser.user_create(

@@ -192,7 +192,7 @@ class GulpAPIUser:
         user_id: str,
         password: str,
         permission: list[str],
-        email: Optional[str],
+        email: Optional[str] = None,
         glyph_id: Optional[str] = None,
         user_data: Optional[dict] = None,
         req_id: str = None,
