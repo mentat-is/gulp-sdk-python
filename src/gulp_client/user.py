@@ -138,6 +138,7 @@ class GulpAPIUser:
         password: Optional[str] = None,
         permission: Optional[list[str]] = None,
         email: Optional[str] = None,
+        glyph_id: Optional[str] = None,
         user_data: Optional[dict] = None,
         merge_user_data: bool = False,
         req_id: str = None,
@@ -156,6 +157,8 @@ class GulpAPIUser:
             body["permission"] = permission
         if email:
             params["email"] = email
+        if glyph_id:
+            params["glyph_id"] = glyph_id
         if user_data:
             body["user_data"] = user_data
 
@@ -189,7 +192,9 @@ class GulpAPIUser:
         user_id: str,
         password: str,
         permission: list[str],
-        email: Optional[str] = None,
+        email: Optional[str],
+        glyph_id: Optional[str] = None,
+        user_data: Optional[dict] = None,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -197,11 +202,13 @@ class GulpAPIUser:
         params = {
             "user_id": user_id,
             "password": password,
+            "glyph_id": glyph_id,
+            "email": email,
             "req_id": req_id or api_common.req_id,
         }
-        body = permission
-        if email:
-            params["email"] = email
+        body = {}
+        body["user_data"] = user_data or {}
+        body["permission"] = permission
 
         res = await api_common.make_request(
             "POST",

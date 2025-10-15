@@ -13,12 +13,12 @@ class GulpAPIOperation:
     async def operation_create(
         token: str,
         name: str,
-        index: str = None,
         description: str = None,
         glyph_id: str = None,
         set_default_grants: bool = False,
         index_template: str = None,
         create_index: bool = True,
+        operation_data: dict = None,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -32,7 +32,6 @@ class GulpAPIOperation:
 
         params = {
             "name": name,
-            "index": index,
             "glyph_id": glyph_id,
             "set_default_grants": set_default_grants,
             "create_index": create_index,
@@ -42,6 +41,8 @@ class GulpAPIOperation:
             "description": description,
             "index_template": template_js if index_template else None,
         }
+        if operation_data:
+            body["operation_data"] = operation_data
 
         res = await api_common.make_request(
             "POST",

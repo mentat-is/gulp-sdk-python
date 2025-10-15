@@ -18,7 +18,6 @@ class GulpAPIIngest:
         token: str,
         file_path: str,
         source_id: str,
-        plugin: str = None,
         file_total: int = 1,
         flt: Optional[GulpIngestionFilter] = None,
         plugin_params: Optional[GulpPluginParameters] = None,
@@ -28,7 +27,6 @@ class GulpAPIIngest:
         file_sha1: str = None,
         total_file_size: int = 0,
         expected_status: int = 200,
-        preview_mode: bool = False,
     ) -> dict:
         """Ingest a file to a specific source within a context (the context and source are created if they do not exist)"""
         api_common = GulpAPICommon.get_instance()
@@ -41,8 +39,6 @@ class GulpAPIIngest:
 
         params = {
             "source_id": source_id,
-            "plugin": plugin,
-            "preview_mode": preview_mode,
             "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
             "file_total": file_total,
@@ -71,7 +67,10 @@ class GulpAPIIngest:
             ),
         }
 
-        headers = {"size": str(total_file_size), "continue_offset": str(restart_from)}
+        headers = {
+            "size": str(total_file_size),
+            "continue_offset": str(restart_from) if restart_from else "0",
+        }
 
         return await api_common.make_request(
             "POST",
@@ -81,7 +80,7 @@ class GulpAPIIngest:
             files=files,
             headers=headers,
             expected_status=expected_status,
-    )
+        )
 
     @staticmethod
     async def ingest_file(
@@ -142,8 +141,10 @@ class GulpAPIIngest:
             ),
         }
 
-        headers = {"size": str(total_file_size), "continue_offset": str(restart_from)}
-
+        headers = {
+            "size": str(total_file_size),
+            "continue_offset": str(restart_from) if restart_from else "0",
+        }
         return await api_common.make_request(
             "POST",
             "ingest_file",
@@ -293,7 +294,10 @@ class GulpAPIIngest:
             ),
         }
 
-        headers = {"size": str(total_file_size), "continue_offset": str(restart_from)}
+        headers = {
+            "size": str(total_file_size),
+            "continue_offset": str(restart_from) if restart_from else "0",
+        }
 
         return await api_common.make_request(
             "POST",

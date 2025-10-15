@@ -261,15 +261,21 @@ async def _test_ingest_ws_loop(
             while True:
                 response = await ws.recv()
                 data = json.loads(response)
-
+                # print(data)
                 # wait for the stats update
-                if data["type"] == "collab_update":
+                payload = data.get("payload", {})
+                if (
+                    payload
+                    and data["type"] == "stats_update"
+                    and payload["obj"]["req_type"] == "ingest"
+                ):
                     # stats update
-                    stats_packet = data["data"]["data"]
-                    MutyLogger.get_instance().info(f"ingestion stats: {stats_packet}")
-                    records_ingested = stats_packet.get("records_ingested", 0)
-                    records_processed = stats_packet.get("records_processed", 0)
-                    records_skipped = stats_packet.get("records_skipped", 0)
+                    stats = payload["obj"]
+                    stats_data = payload["obj"]["data"]
+                    MutyLogger.get_instance().info(f"ingestion stats: {stats_data}")
+                    records_ingested = stats_data.get("records_ingested", 0)
+                    records_processed = stats_data.get("records_processed", 0)
+                    records_skipped = stats_data.get("records_skipped", 0)
 
                     # perform checks
                     skipped_test_succeeded = True
@@ -305,14 +311,14 @@ async def _test_ingest_ws_loop(
                             skipped_test_succeeded = False
 
                     if success is not None:
-                        if stats_packet["status"] == "done":
+                        if stats["status"] == "done":
                             MutyLogger.get_instance().info("success!")
                             success_test_succeeded = True
                         else:
                             success_test_succeeded = False
 
                     if skip_checks:
-                        if stats_packet["status"] != "ongoing":
+                        if stats["status"] != "ongoing":
                             MutyLogger.get_instance().info(
                                 "request done, checks skipped, breaking the loop!"
                             )
@@ -332,10 +338,7 @@ async def _test_ingest_ws_loop(
                         break
 
                     # check for failed/canceled
-                    if (
-                        stats_packet["status"] == "failed"
-                        or stats_packet["status"] == "canceled"
-                    ):
+                    if stats["status"] == "failed" or stats["status"] == "canceled":
                         break
 
                 # ws delay

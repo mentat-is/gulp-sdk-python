@@ -8,7 +8,7 @@ from muty.log import MutyLogger
 import requests
 
 from gulp.api.opensearch.filters import GulpQueryFilter
-from gulp.api.opensearch.query import GulpQueryParameters
+from gulp.api.opensearch.structs import GulpQueryParameters
 from gulp_client.common import GulpAPICommon
 from gulp.structs import GulpMappingParameters, GulpPluginParameters
 
