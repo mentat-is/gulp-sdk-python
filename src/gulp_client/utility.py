@@ -77,6 +77,32 @@ class GulpAPIUtility:
         return res
 
     @staticmethod
+    async def request_delete(
+        token: str,
+        operation_id: str,
+        obj_id: str = None,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "operation_id": operation_id,    
+            "req_id": req_id or api_common.req_id,
+        }
+        if obj_id:
+            params["obj_id"] = obj_id
+
+        res = await api_common.make_request(
+            "DELETE",
+            "request_delete",
+            params=params,
+            token=token,
+            body=None,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
     async def request_set_completed(
         token: str,
         req_id_to_complete: str,

@@ -55,6 +55,30 @@ class GulpAPIOperation:
         return res
 
     @staticmethod
+    async def operation_cleanup(
+        token: str,
+        operation_id: str,
+        additional_tables: list[str] = None,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+
+        params = {
+            "operation_id": operation_id,
+            "req_id": req_id or api_common.req_id,
+        }
+        res = await api_common.make_request(
+            "POST",
+            "operation_cleanup",
+            params=params,
+            body=additional_tables,
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
     async def operation_update(
         token: str,
         operation_id: str,

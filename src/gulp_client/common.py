@@ -8,6 +8,8 @@ import requests
 import websockets
 from muty.log import MutyLogger
 from gulp.api.collab.structs import GulpCollabFilter
+from gulp.api.collab_api import GulpCollab
+
 from gulp.api.opensearch.filters import GulpIngestionFilter
 from gulp_client.test_values import (
     TEST_CONTEXT_NAME,
@@ -19,6 +21,7 @@ from gulp_client.test_values import (
 )
 from gulp.api.ws_api import GulpWsAuthPacket
 from gulp.structs import GulpPluginParameters
+from gulp.api.collab.stats import GulpIngestionStats, GulpRequestStats
 
 
 async def _ensure_test_users(
@@ -77,7 +80,6 @@ async def _ensure_test_users(
         admin_token, "power", "power", ["read", "edit", "delete"]
     )
     assert res["id"] == "power"
-
 
 async def _ensure_test_operation(
     delete_data: bool = True, log_request: bool = False, log_response: bool = False
@@ -273,12 +275,12 @@ async def _test_ingest_ws_loop(
                     and payload["obj"]["req_type"] == "ingest"
                 ):
                     # stats update
-                    stats = payload["obj"]
-                    stats_data = payload["obj"]["data"]
-                    MutyLogger.get_instance().info(f"ingestion stats: {stats_data}")
-                    records_ingested = stats_data.get("records_ingested", 0)
-                    records_processed = stats_data.get("records_processed", 0)
-                    records_skipped = stats_data.get("records_skipped", 0)
+                    stats: GulpRequestStats = GulpRequestStats.from_dict(payload["obj"])
+                    stats_data: GulpIngestionStats = GulpIngestionStats.model_validate(payload["obj"]["data"])
+                    MutyLogger.get_instance().info("stats: %s", stats)
+                    records_ingested = stats_data.records_ingested
+                    records_processed = stats_data.records_processed
+                    records_skipped = stats_data.records_skipped
 
                     # perform checks
                     skipped_test_succeeded = True
@@ -288,7 +290,7 @@ async def _test_ingest_ws_loop(
                     if check_ingested is not None:
                         if records_ingested == check_ingested:
                             MutyLogger.get_instance().info(
-                                "all %d records ingested!" % (check_ingested)
+                                "all %d records ingested!", check_ingested
                             )
                             ingested_test_succeeded = True
                         else:
@@ -297,7 +299,7 @@ async def _test_ingest_ws_loop(
                     if check_processed is not None:
                         if records_processed == check_processed:
                             MutyLogger.get_instance().info(
-                                "all %d records processed!" % (check_processed)
+                                "all %d records processed!", check_processed
                             )
                             processed_test_succeeded = True
                         else:
@@ -307,21 +309,21 @@ async def _test_ingest_ws_loop(
 
                         if records_skipped == check_skipped:
                             MutyLogger.get_instance().info(
-                                "all %d records skipped!" % (check_skipped)
+                                "all %d records skipped!", check_skipped
                             )
                             skipped_test_succeeded = True
                         else:
                             skipped_test_succeeded = False
 
                     if success is not None:
-                        if stats["status"] == "done":
+                        if stats.status == "done":
                             MutyLogger.get_instance().info("success!")
                             success_test_succeeded = True
                         else:
                             success_test_succeeded = False
 
                     if skip_checks:
-                        if stats["status"] != "ongoing":
+                        if stats.status != "ongoing":
                             MutyLogger.get_instance().info(
                                 "request done, checks skipped, breaking the loop!"
                             )
@@ -341,7 +343,7 @@ async def _test_ingest_ws_loop(
                         break
 
                     # check for failed/canceled
-                    if stats["status"] == "failed" or stats["status"] == "canceled":
+                    if stats.status == "failed" or stats.status == "canceled":
                         break
 
                 # ws delay
@@ -351,8 +353,13 @@ async def _test_ingest_ws_loop(
             MutyLogger.get_instance().exception(ex)
 
     MutyLogger.get_instance().info(
-        f"found_ingested={records_ingested} (requested={check_ingested}), found_processed={
-            records_processed} (requested={check_processed}), found_skipped={records_skipped} (requested={check_skipped})"
+        "found_ingested=%s, requested=%s, found_processed=%s (requested=%s), found_skipped=%s (requested=%s)",
+        records_ingested,
+        check_ingested,
+        records_processed,
+        check_processed,
+        records_skipped,
+        check_skipped,
     )
     assert test_completed
     MutyLogger.get_instance().info("_test_ingest_ws_loop succeeded!")
@@ -400,6 +407,9 @@ class GulpAPICommon:
         self.host = host
         self._log_res = log_response
         self._log_req = log_request
+
+        # needed for sqlalchemy ORM objects
+        GulpCollab.init_mappers()
 
     def _make_url(self, endpoint: str) -> str:
         return f"{self.host}/{endpoint}"
