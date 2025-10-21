@@ -81,6 +81,27 @@ async def _ensure_test_users(
     )
     assert res["id"] == "power"
 
+
+async def _cleanup_test_operation():
+    """
+    cleanup (not delete) test_operation collab objects (and guest user data)
+    """
+    GulpAPICommon.get_instance().init(
+        host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
+    )
+    from gulp_client.user import GulpAPIUser
+    from gulp_client.operation import GulpAPIOperation
+
+    admin_token = await GulpAPIUser.login_admin()
+    guest_token = await GulpAPIUser.login("guest", "guest")
+
+    assert admin_token
+    assert guest_token
+    await GulpAPIOperation.operation_cleanup(admin_token, TEST_OPERATION_ID)
+    await GulpAPIUser.user_delete_data(guest_token)
+    await GulpAPIUser.user_delete_data(admin_token)
+
+
 async def _ensure_test_operation(
     delete_data: bool = True, log_request: bool = False, log_response: bool = False
 ) -> None:
@@ -276,7 +297,9 @@ async def _test_ingest_ws_loop(
                 ):
                     # stats update
                     stats: GulpRequestStats = GulpRequestStats.from_dict(payload["obj"])
-                    stats_data: GulpIngestionStats = GulpIngestionStats.model_validate(payload["obj"]["data"])
+                    stats_data: GulpIngestionStats = GulpIngestionStats.model_validate(
+                        payload["obj"]["data"]
+                    )
                     MutyLogger.get_instance().info("stats: %s", stats)
                     records_ingested = stats_data.records_ingested
                     records_processed = stats_data.records_processed
