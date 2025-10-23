@@ -86,7 +86,7 @@ class GulpAPIUtility:
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
         params = {
-            "operation_id": operation_id,    
+            "operation_id": operation_id,
             "req_id": req_id or api_common.req_id,
         }
         if obj_id:
@@ -107,7 +107,7 @@ class GulpAPIUtility:
         token: str,
         req_id_to_complete: str,
         operation_id: str,
-        failed: bool=False,
+        failed: bool = False,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -179,6 +179,20 @@ class GulpAPIUtility:
         return res
 
     @staticmethod
+    async def ui_plugin_get(
+        plugin: str, req_id: str = None, expected_status: int = 200
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        res = await api_common.make_request(
+            "GET",
+            "ui_plugin_get",
+            {"plugin": plugin, "req_id": req_id or api_common.req_id},
+            body=None,
+            expected_status=expected_status,
+        )
+        return res
+
+    @staticmethod
     async def version(
         token: str, req_id: str = None, expected_status: int = 200
     ) -> dict:
@@ -212,4 +226,3 @@ class GulpAPIUtility:
         )
 
         return res
-

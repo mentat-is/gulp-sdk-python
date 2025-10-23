@@ -81,12 +81,13 @@ class GulpAPINote:
             "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
-
-        body = {
-            "doc": doc,
-            "tags": tags,
-            "text": text,
-        }
+        body = {}
+        if doc:
+            body["doc"] = doc
+        if tags:
+            body["tags"] = tags
+        if text:
+            body["text"] = text
 
         res = await api_common.make_request(
             "PATCH",

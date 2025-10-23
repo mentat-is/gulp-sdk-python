@@ -366,7 +366,7 @@ async def _test_ingest_ws_loop(
                         break
 
                     # check for failed/canceled
-                    if stats.status == "failed" or stats.status == "canceled":
+                    if stats.status in ["failed", "canceled"]:
                         break
 
                 # ws delay
