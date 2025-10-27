@@ -33,7 +33,6 @@ class GulpAPIUtility:
     async def request_get_by_id(
         token: str,
         obj_id: str,
-        operation_id: str,
         req_id: str = None,
         expected_status: int = 200,
     ) -> dict:
@@ -42,7 +41,6 @@ class GulpAPIUtility:
         return await api_common.object_get_by_id(
             token=token,
             obj_id=obj_id,
-            operation_id=operation_id,
             req_id=req_id,
             api="request_get_by_id",
             expected_status=expected_status,
@@ -52,8 +50,6 @@ class GulpAPIUtility:
     async def request_cancel(
         token: str,
         req_id_to_cancel: str,
-        operation_id: str,
-        status: str = "canceled",
         expire_now: bool = False,
         req_id: str = None,
         expected_status: int = 200,
@@ -61,8 +57,6 @@ class GulpAPIUtility:
         api_common = GulpAPICommon.get_instance()
         params = {
             "req_id_to_cancel": req_id_to_cancel,
-            "operation_id": operation_id,
-            "status": status,
             "expire_now": expire_now,
             "req_id": req_id or api_common.req_id,
         }
@@ -106,7 +100,6 @@ class GulpAPIUtility:
     async def request_set_completed(
         token: str,
         req_id_to_complete: str,
-        operation_id: str,
         failed: bool = False,
         req_id: str = None,
         expected_status: int = 200,
@@ -114,7 +107,6 @@ class GulpAPIUtility:
         api_common = GulpAPICommon.get_instance()
         params = {
             "req_id_to_complete": req_id_to_complete,
-            "operation_id": operation_id,
             "failed": failed,
             "req_id": req_id or api_common.req_id,
         }
