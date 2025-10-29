@@ -145,3 +145,31 @@ class GulpAPIStory:
             req_id=req_id,
             expected_status=expected_status,
         )
+
+    @staticmethod
+    async def story_report_create(
+        token: str,
+        story_id: str,
+        model: str = None,
+        req_id: str = None,
+        ws_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+
+        params = {
+            "story_id": story_id,
+            "model": model,
+            "req_id": req_id,
+            "ws_id": ws_id,
+        }
+
+        result = await api_common.make_request(
+            "POST",
+            "/generate_report",
+            params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+
+        return result
