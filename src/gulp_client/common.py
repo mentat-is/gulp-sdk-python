@@ -388,6 +388,52 @@ async def _test_ingest_ws_loop(
     MutyLogger.get_instance().info("_test_ingest_ws_loop succeeded!")
 
 
+async def _test_ai_report_ws_loop(
+    ws_id: str = TEST_WS_ID,
+):
+    """
+    open a websocket and wait for the ingestion to complete, optionally enforcing check of the number of ingested/processed records
+
+    :param check_ingested: if not None, check the number of ingested records
+    :param check_processed: if not None, check the number of processed records
+    :param check_skipped: if not None, check the number of skipped records
+    :param success: if not None, check if the ingestion was successful
+    """
+    _, host = TEST_HOST.split("://")
+    ws_url = f"ws://{host}/ws"
+
+    async with websockets.connect(ws_url) as ws:
+        # connect websocket
+        p: GulpWsAuthPacket = GulpWsAuthPacket(token="monitor", ws_id=ws_id)
+        await ws.send(p.model_dump_json(exclude_none=True))
+
+        # receive responses
+        report = ""
+        try:
+            while True:
+                response = await ws.recv()
+                data = json.loads(response)
+
+                if data["type"] == "ai_report_done":
+                    # stats update
+                    payload = data.get("payload", "")
+                    report = payload
+                    break
+                if data["type"] == "ai_report_failed":
+                    report = ""
+                    break
+
+                # ws delay
+                await asyncio.sleep(0.1)
+
+        except websockets.exceptions.ConnectionClosed as ex:
+            MutyLogger.get_instance().exception(ex)
+    if report:
+        MutyLogger.get_instance().info("_test_ai_report_ws_loop succes")
+        return report
+    raise Exception()
+
+
 class GulpAPICommon:
     _instance: "GulpAPICommon" = None
 
