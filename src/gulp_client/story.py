@@ -156,7 +156,7 @@ class GulpAPIStory:
         expected_status: int = 200,
     ) -> dict:
         api_common = GulpAPICommon.get_instance()
-
+        """ call plugin extension ai_report to generate a report start from story line"""
         params = {
             "story_id": story_id,
             "model": model,
