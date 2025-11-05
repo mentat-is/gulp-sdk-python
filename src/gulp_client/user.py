@@ -16,7 +16,7 @@ class GulpAPIUser:
     async def login_admin_and_reset_operation(
         req_id: str, ws_id: str = None, operation_id: str = None, recreate: bool = False
     ) -> str:
-        admin_token = await GulpAPIUser.login_admin(req_id=req_id, ws_id=ws_id)
+        admin_token = await GulpAPIUser.login_admin(req_id=req_id)
         assert admin_token
         op = operation_id or TEST_OPERATION_ID
         if recreate:
@@ -38,11 +38,10 @@ class GulpAPIUser:
         return admin_token
 
     @staticmethod
-    async def login_admin(req_id: str = None, ws_id: str = None) -> str:
+    async def login_admin(req_id: str = None) -> str:
         MutyLogger.get_instance().info("Logging in as admin...")
         api_common = GulpAPICommon.get_instance()
         params = {
-            "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
         body = {
@@ -83,11 +82,10 @@ class GulpAPIUser:
 
     @staticmethod
     async def login(
-        user_id: str, password: str, req_id: str = None, ws_id: str = None
+        user_id: str, password: str, req_id: str = None
     ) -> str:
         api_common = GulpAPICommon.get_instance()
         params = {
-            "ws_id": ws_id or api_common.ws_id,
             "req_id": req_id or api_common.req_id,
         }
         body = {

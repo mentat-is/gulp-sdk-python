@@ -276,10 +276,14 @@ async def _test_ingest_ws_loop(
     records_ingested = 0
     records_processed = 0
     records_skipped = 0
+    
+    from gulp_client.user import GulpAPIUser
+    admin_token = await GulpAPIUser.login_admin()
+    assert admin_token
 
     async with websockets.connect(ws_url) as ws:
         # connect websocket
-        p: GulpWsAuthPacket = GulpWsAuthPacket(token="monitor", ws_id=TEST_WS_ID)
+        p: GulpWsAuthPacket = GulpWsAuthPacket(token=admin_token, ws_id=TEST_WS_ID)
         await ws.send(p.model_dump_json(exclude_none=True))
 
         # receive responses
@@ -367,6 +371,9 @@ async def _test_ingest_ws_loop(
 
                     # check for failed/canceled
                     if stats.status in ["failed", "canceled"]:
+                        MutyLogger.get_instance().error(
+                            "ingestion failed/canceled, breaking the loop!"
+                        )
                         break
 
                 # ws delay
@@ -402,9 +409,11 @@ async def _test_ai_report_ws_loop(
     _, host = TEST_HOST.split("://")
     ws_url = f"ws://{host}/ws"
 
+    admin_token = await GulpAPIUser.login_admin()
+    assert admin_token
     async with websockets.connect(ws_url) as ws:
         # connect websocket
-        p: GulpWsAuthPacket = GulpWsAuthPacket(token="monitor", ws_id=ws_id)
+        p: GulpWsAuthPacket = GulpWsAuthPacket(token=admin_token, ws_id=ws_id)
         await ws.send(p.model_dump_json(exclude_none=True))
 
         # receive responses
