@@ -11,7 +11,6 @@ class GulpAPIHighlight:
     async def highlight_create(
         token: str,
         operation_id: str,
-        source_id: str,
         time_range: tuple[int, int],
         name: str = None,
         description: str = None,
@@ -27,7 +26,6 @@ class GulpAPIHighlight:
         params = {
             "operation_id": operation_id,
             "ws_id": ws_id or api_common.ws_id,
-            "source_id": source_id,
             "name": name,
             "description": description,
             "glyph_id": glyph_id,
