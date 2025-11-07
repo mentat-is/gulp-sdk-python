@@ -149,6 +149,7 @@ class GulpAPIStory:
     @staticmethod
     async def story_report_create(
         token: str,
+        operation_id: str,
         story_id: str,
         model: str = None,
         req_id: str = None,
@@ -158,6 +159,7 @@ class GulpAPIStory:
         api_common = GulpAPICommon.get_instance()
         """ call plugin extension ai_report to generate a report start from story line"""
         params = {
+            "operation_id": operation_id,
             "story_id": story_id,
             "model": model,
             "req_id": req_id,

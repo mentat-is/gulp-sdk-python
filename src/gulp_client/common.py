@@ -276,8 +276,9 @@ async def _test_ingest_ws_loop(
     records_ingested = 0
     records_processed = 0
     records_skipped = 0
-    
+
     from gulp_client.user import GulpAPIUser
+
     admin_token = await GulpAPIUser.login_admin()
     assert admin_token
 
@@ -408,6 +409,7 @@ async def _test_ai_report_ws_loop(
     """
     _, host = TEST_HOST.split("://")
     ws_url = f"ws://{host}/ws"
+    from gulp_client.user import GulpAPIUser
 
     admin_token = await GulpAPIUser.login_admin()
     assert admin_token
