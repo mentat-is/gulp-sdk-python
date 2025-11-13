@@ -231,6 +231,10 @@ async def _test_ingest_generic(
         host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
     )
 
+    # start the ingest loop
+    t = asyncio.create_task(_test_ingest_ws_loop(check_ingested=check_ingested, check_processed=check_processed))
+    await asyncio.sleep(1)
+
     # for each file, spawn a process using multiprocessing
     for file in files:
         p = multiprocessing.Process(
@@ -250,9 +254,7 @@ async def _test_ingest_generic(
         p.start()
 
     # wait for all processes to finish
-    await _test_ingest_ws_loop(
-        check_ingested=check_ingested, check_processed=check_processed
-    )
+    await t
 
 
 async def _test_ingest_ws_loop(
