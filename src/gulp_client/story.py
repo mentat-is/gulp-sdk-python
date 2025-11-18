@@ -133,6 +133,7 @@ class GulpAPIStory:
     @staticmethod
     async def story_list(
         token: str,
+        operation_id: str,
         flt: GulpCollabFilter = None,
         req_id: str = None,
         expected_status: int = 200,
@@ -141,6 +142,7 @@ class GulpAPIStory:
         return await api_common.object_list(
             token=token,
             api="story_list",
+            operation_id=operation_id,
             flt=flt,
             req_id=req_id,
             expected_status=expected_status,
