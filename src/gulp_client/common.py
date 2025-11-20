@@ -6,11 +6,6 @@ from typing import Any
 
 import requests
 import websockets
-from muty.log import MutyLogger
-from gulp.api.collab.structs import GulpCollabFilter
-from gulp.api.collab_api import GulpCollab
-
-from gulp.api.opensearch.filters import GulpIngestionFilter
 from gulp_client.test_values import (
     TEST_CONTEXT_NAME,
     TEST_HOST,
@@ -19,9 +14,14 @@ from gulp_client.test_values import (
     TEST_REQ_ID,
     TEST_WS_ID,
 )
+from muty.log import MutyLogger
+
+from gulp.api.collab.stats import GulpIngestionStats, GulpRequestStats
+from gulp.api.collab.structs import GulpCollabFilter
+from gulp.api.collab_api import GulpCollab
+from gulp.api.opensearch.filters import GulpIngestionFilter
 from gulp.api.ws_api import GulpWsAuthPacket
 from gulp.structs import GulpPluginParameters
-from gulp.api.collab.stats import GulpIngestionStats, GulpRequestStats
 
 
 async def _ensure_test_users(
@@ -89,8 +89,8 @@ async def _cleanup_test_operation():
     GulpAPICommon.get_instance().init(
         host=TEST_HOST, ws_id=TEST_WS_ID, req_id=TEST_REQ_ID, index=TEST_INDEX
     )
-    from gulp_client.user import GulpAPIUser
     from gulp_client.operation import GulpAPIOperation
+    from gulp_client.user import GulpAPIUser
 
     admin_token = await GulpAPIUser.login_admin()
     guest_token = await GulpAPIUser.login("guest", "guest")
@@ -119,8 +119,8 @@ async def _ensure_test_operation(
         log_request=log_request,
         log_response=log_response,
     )
-    from gulp_client.user import GulpAPIUser
     from gulp_client.operation import GulpAPIOperation
+    from gulp_client.user import GulpAPIUser
 
     admin_token = await GulpAPIUser.login_admin()
     assert admin_token
@@ -378,7 +378,10 @@ async def _test_ingest_ws_loop(
                             "ingestion failed/canceled, breaking the loop!"
                         )
                         break
-
+                else:
+                    # print other messages
+                    MutyLogger.get_instance().debug(data)
+                    
                 # ws delay
                 await asyncio.sleep(0.1)
 
