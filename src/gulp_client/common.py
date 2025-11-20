@@ -4,6 +4,7 @@ import multiprocessing
 import os
 from typing import Any
 
+import muty.string
 import requests
 import websockets
 from gulp_client.test_values import (
@@ -380,7 +381,10 @@ async def _test_ingest_ws_loop(
                         break
                 else:
                     # print other messages
-                    MutyLogger.get_instance().debug(data)
+                    if data["type"] != "docs_chunk":
+                        # avoid flooding
+                        MutyLogger.get_instance().debug(data)
+                        # MutyLogger.get_instance().debug(muty.string.make_shorter(str(data, max_len=260)))
                     
                 # ws delay
                 await asyncio.sleep(0.1)
