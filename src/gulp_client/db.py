@@ -1,17 +1,36 @@
 import os
 
+from gulp_client.common import GulpAPICommon
+from gulp_client.user import GulpAPIUser
 from muty.log import MutyLogger
 
 from gulp.api.opensearch.filters import GulpQueryFilter
-from gulp_client.common import GulpAPICommon
-from gulp_client.user import GulpAPIUser
 
 
 class GulpAPIDb:
     """
     bindings to call gulp's db related API endpoints
     """
-
+    @staticmethod
+    async def opensearch_refresh_index(
+        token: str,
+        index: str,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        res = await api_common.make_request(
+            "POST",
+            "opensearch_refresh_index",
+            params={
+                "index": index,
+                "req_id": req_id or api_common.req_id,
+            },
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
+        
     @staticmethod
     async def opensearch_list_index(
         token: str,
