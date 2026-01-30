@@ -488,8 +488,19 @@ class GulpAPICommon:
         log_response: bool = False,
     ):
         """
-        must be called before any other method
+        must be called before any other method.
+
+        if log_request or log_response are True, the requests and/or responses will be logged
+        if GULP_SDK_LOG_REQUEST or GULP_SDK_LOG_RESPONSE env vars are set to "1", they override the parameters
         """
+        # check env first
+        env_log_request = os.getenv("GULP_SDK_LOG_REQUEST", "0")
+        env_log_response = os.getenv("GULP_SDK_LOG_RESPONSE", "0")
+        if env_log_request == "1":
+            log_request = True
+        if env_log_response == "1":
+            log_response = True
+
         self.index = index
         self.ws_id = ws_id
         self.req_id = req_id
@@ -554,13 +565,14 @@ class GulpAPICommon:
             r = requests.request(
                 method, url, headers=headers, params=params, files=files, data=data
             )
-        elif method in ["POST", "PATCH", "PUT"] and body:
+        # allow body to be sent for DELETE as well (some endpoints accept a body with DELETE)
+        elif method in ["POST", "PATCH", "PUT", "DELETE"] and body:
             r = requests.request(method, url, headers=headers, params=params, json=body)
         else:
             r = requests.request(method, url, headers=headers, params=params)
 
         self._log_response(r)
-        MutyLogger.get_instance().debug("response status code: %d", r.status_code)
+        MutyLogger.get_instance().debug("response status code: %d, expected=%d", r.status_code, expected_status)
         assert r.status_code == expected_status
 
         return r.json().get("data") if r.status_code == 200 else {}

@@ -2,6 +2,8 @@ import io
 import os
 
 from gulp_client.common import GulpAPICommon
+
+from gulp.api.collab.structs import GulpCollabFilter
 from gulp.plugin import GulpUiPluginMetadata
 
 
@@ -96,6 +98,32 @@ class GulpAPIUtility:
         )
         return res
 
+    @staticmethod
+    async def object_delete_bulk(
+        token: str,
+        operation_id: str,
+        obj_type: str,
+        flt: GulpCollabFilter,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "operation_id": operation_id,
+            "obj_type": obj_type,
+            "req_id": req_id or api_common.req_id,
+        }
+        body = flt.model_dump(exclude_none=True)
+        
+        res = await api_common.make_request(
+            "DELETE",
+            "object_delete_bulk",
+            params=params,
+            token=token,
+            body=body,
+            expected_status=expected_status,
+        )
+        return res
     @staticmethod
     async def request_set_completed(
         token: str,
@@ -217,4 +245,5 @@ class GulpAPIUtility:
             expected_status=expected_status,
         )
 
+        return res
         return res
