@@ -23,6 +23,7 @@ class GulpAPIEnrich:
         token: str,
         operation_id: str,
         doc_id: str,
+        fields: dict,
         plugin: str,
         plugin_params: GulpPluginParameters = None,
         expected_status: int = 200,
@@ -37,7 +38,10 @@ class GulpAPIEnrich:
             "req_id": req_id or api_common.req_id,
             "ws_id": ws_id or api_common.ws_id,
         }
-        body = plugin_params.model_dump(exclude_none=True) if plugin_params else {}
+        body = {
+            "plugin_params": plugin_params.model_dump(exclude_none=True) if plugin_params else None,
+            "fields": fields,
+        }
         res = await api_common.make_request(
             "POST",
             "enrich_single_id",
@@ -52,6 +56,7 @@ class GulpAPIEnrich:
     async def enrich_documents(
         token: str,
         operation_id: str,
+        fields: dict,
         plugin: str,
         plugin_params: GulpPluginParameters = None,
         flt: GulpQueryFilter = None,
@@ -67,6 +72,7 @@ class GulpAPIEnrich:
             "ws_id": ws_id or api_common.ws_id,
         }
         body = {
+            "fields": fields,
             "plugin_params": (
                 plugin_params.model_dump(by_alias=True, exclude_none=True)
                 if plugin_params
