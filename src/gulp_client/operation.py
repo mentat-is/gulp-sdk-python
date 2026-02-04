@@ -130,7 +130,7 @@ class GulpAPIOperation:
         params = {
             "operation_id": operation_id,
             "delete_data": delete_data,
-            "ws_id": ws_id or api_common.ws_id,
+            "ws_id": ws_id,
             "req_id": req_id or api_common.req_id,
         }
 
@@ -237,7 +237,7 @@ class GulpAPIOperation:
             "color": color or "white",
             "glyph_id": glyph_id,
             "req_id": req_id or api_common.req_id,
-            "ws_id": ws_id or api_common.ws_id,
+            "ws_id": ws_id,
             "fail_if_exists": fail_if_exists,
         }
         return await api_common.make_request(
@@ -266,7 +266,7 @@ class GulpAPIOperation:
             "color": color,
             "glyph_id": glyph_id,
             "req_id": req_id or api_common.req_id,
-            "ws_id": ws_id or api_common.ws_id,
+            "ws_id": ws_id
         }
         body = description
         return await api_common.make_request(
@@ -292,7 +292,7 @@ class GulpAPIOperation:
             "context_id": context_id,
             "delete_data": delete_data,
             "req_id": req_id or api_common.req_id,
-            "ws_id": ws_id or api_common.ws_id,
+            "ws_id": ws_id,
         }
         return await api_common.make_request(
             "DELETE",
