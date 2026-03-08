@@ -6,6 +6,7 @@ from typing import Any
 
 import muty.string
 import requests
+import aiofiles
 import websockets
 from gulp_client.test_values import (
     TEST_CONTEXT_NAME,
@@ -530,6 +531,7 @@ class GulpAPICommon:
             f"RESPONSE Body: {json.dumps(r.json(), indent=2)}"
         )
 
+    
     async def make_request(
         self,
         method: str,
@@ -576,6 +578,109 @@ class GulpAPICommon:
         assert r.status_code == expected_status
 
         return r.json().get("data") if r.status_code == 200 else {}
+
+    async def download_file(
+        self,
+        endpoint: str,
+        local_path: str,
+        params: dict = None,
+        token: str = None,
+        headers: dict = None,
+        expected_status: int = 200,
+    ) -> str:
+        """
+        Download the response body from a GET request to `endpoint` and save it to
+        `local_path`.
+
+        The signature mirrors :meth:`make_request` for consistency.  ``params`` will be
+        passed as query parameters, ``token`` will be added to headers if provided and
+        ``headers`` may contain additional values.  The response status code is asserted
+        against ``expected_status`` (defaults to ``200``).
+
+        Unlike ``make_request`` this method *does not* attempt to interpret the body as
+        JSON; it streams raw bytes into the destination file.  This is useful for
+        downloading plugin files, mapping files, or any other binary/content responses
+        that the server serves as a download.
+        """
+        # build url and headers like make_request
+        url = self._make_url(endpoint)
+        if headers:
+            if token:
+                headers.update({"token": token})
+        else:
+            headers = {"token": token} if token else {}
+
+        # log the download request similar to make_request
+        self._log_request("GET", url, {"params": params, "headers": headers})
+
+        # perform the request with streaming
+        r = requests.get(url, headers=headers, params=params, stream=True)
+
+        # log status without attempting to decode JSON (may be binary)
+        if self._log_res:
+            MutyLogger.get_instance().debug(f"RESPONSE Status: {r.status_code}")
+
+        MutyLogger.get_instance().debug("response status code: %d, expected=%d", r.status_code, expected_status)
+        assert r.status_code == expected_status
+
+        # write to file asynchronously
+        # note: requests is still synchronous, but we stream bytes into the
+        # destination without blocking the event loop for file I/O.
+        async with aiofiles.open(local_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    await f.write(chunk)
+
+        return local_path
+
+    async def upload_files(
+        self,
+        endpoint: str,
+        file_paths: list[str],
+        params: dict = None,
+        token: str = None,
+        headers: dict = None,
+        expected_status: int = 200,
+    ) -> dict:
+        """
+        Upload one or more files to a POST endpoint.
+
+        This convenience wraps :meth:`make_request` by constructing a files
+        dictionary from the provided ``file_paths``.  The keys are generated as
+        ``file0``, ``file1``, etc., with each value being a ``(filename,
+        fileobj)`` tuple.  All files are closed after the request completes.
+
+        Parameters are the same as :meth:`make_request` except ``body`` is not
+        used.  ``params`` will be passed as query parameters, and ``token``/``headers``
+        are handled the same way as in :meth:`make_request`.
+        """
+        # prepare file objects
+        fobjs = []
+        files = {}
+        for idx, path in enumerate(file_paths):
+            f = open(path, "rb")
+            fobjs.append(f)
+            files[f"file{idx}"] = (os.path.basename(path), f)
+
+        try:
+            res = await self.make_request(
+                "POST",
+                endpoint,
+                params=params or {},
+                token=token,
+                files=files,
+                headers=headers,
+                expected_status=expected_status,
+            )
+        finally:
+            # ensure all file handles are closed
+            for f in fobjs:
+                try:
+                    f.close()
+                except Exception:
+                    pass
+
+        return res
 
     async def object_delete(
         self,
