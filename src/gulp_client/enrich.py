@@ -217,3 +217,33 @@ class GulpAPIEnrich:
             expected_status=expected_status,
         )
         return res
+
+    @staticmethod
+    async def enrich_remove(
+        token: str,
+        operation_id: str,
+        flt: GulpQueryFilter = None,
+        expected_status: int = 200,
+        req_id: str = None,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "operation_id": operation_id,
+            "req_id": req_id or api_common.req_id,
+        }
+        body = {
+            "flt": (
+                flt.model_dump(by_alias=True, exclude_none=True, exclude_defaults=True)
+                if flt
+                else None
+            ),
+        }
+        res = await api_common.make_request(
+            "POST",
+            "enrich_remove",
+            params=params,
+            body=body,
+            token=token,
+            expected_status=expected_status,
+        )
+        return res
