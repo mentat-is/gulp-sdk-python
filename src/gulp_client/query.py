@@ -6,6 +6,7 @@ import muty.crypto
 import muty.file
 from muty.log import MutyLogger
 import requests
+import aiofiles
 
 from gulp.api.opensearch.filters import GulpQueryFilter
 from gulp.api.opensearch.structs import GulpQueryParameters
@@ -121,10 +122,11 @@ class GulpAPIQuery:
         )
         assert r.status_code == expected_status
 
-        with open(output_file_path, "wb") as f:
+        # stream the response into the destination file asynchronously
+        async with aiofiles.open(output_file_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
-                    f.write(chunk)
+                    await f.write(chunk)
         return output_file_path
 
     @staticmethod
