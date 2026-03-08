@@ -579,6 +579,46 @@ class GulpAPICommon:
 
         return r.json().get("data") if r.status_code == 200 else {}
 
+    async def download_file_to_memory(
+        self,
+        endpoint: str,
+        params: dict = None,
+        token: str = None,
+        headers: dict = None,
+        expected_status: int = 200,
+    ) -> bytes:
+        """
+        Download the response body from a GET request to `endpoint` and return it as bytes.
+
+        Args:
+            endpoint: API endpoint to send the GET request to
+            params: query parameters to include in the GET request
+            token: optional authentication token to include in the request headers
+            headers: optional additional headers to include in the request
+            expected_status: expected HTTP status code of the response (default: 200)
+        Returns:
+            The response content as bytes if the download was successful.
+        """            
+        # build url and headers like make_request
+        url = self._make_url(endpoint)
+        if headers:
+            if token:
+                headers.update({"token": token})
+        else:
+            headers = {"token": token} if token else {}
+
+        # log the download request similar to make_request
+        self._log_request("GET", url, {"params": params, "headers": headers})
+
+        # perform the request
+        r = requests.get(url, headers=headers, params=params)
+
+        self._log_response(r)
+        MutyLogger.get_instance().debug("response status code: %d, expected=%d", r.status_code, expected_status)
+        assert r.status_code == expected_status
+
+        return r.content
+    
     async def download_file(
         self,
         endpoint: str,
@@ -592,15 +632,16 @@ class GulpAPICommon:
         Download the response body from a GET request to `endpoint` and save it to
         `local_path`.
 
-        The signature mirrors :meth:`make_request` for consistency.  ``params`` will be
-        passed as query parameters, ``token`` will be added to headers if provided and
-        ``headers`` may contain additional values.  The response status code is asserted
-        against ``expected_status`` (defaults to ``200``).
-
-        Unlike ``make_request`` this method *does not* attempt to interpret the body as
-        JSON; it streams raw bytes into the destination file.  This is useful for
-        downloading plugin files, mapping files, or any other binary/content responses
-        that the server serves as a download.
+        Args:
+            endpoint: API endpoint to send the GET request to
+            local_path: local file path to save the downloaded content
+            params: query parameters to include in the GET request
+            token: optional authentication token to include in the request headers
+            headers: optional additional headers to include in the request
+            expected_status: expected HTTP status code of the response (default: 200)
+        
+        Returns:
+            The `local_path` where the file was saved if the download was successful.
         """
         # build url and headers like make_request
         url = self._make_url(endpoint)

@@ -199,6 +199,225 @@ class GulpAPIUtility:
         )
         return res
 
+    # plugin administration -------------------------------------------------
+
+    @staticmethod
+    async def plugin_upload(
+        token: str,
+        file_paths: list[str],
+        plugin_type: str = "default",
+        fail_if_exists: bool = False,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        """Upload one or more plugin files.
+
+        ``file_paths`` is a list of local filesystem paths.  The files will be
+        posted under the ``files`` form field which matches the server handler
+        signature.  ``plugin_type`` and ``fail_if_exists`` are translated into
+        query parameters.
+        """
+        api_common = GulpAPICommon.get_instance()
+
+        params = {
+            "plugin_type": plugin_type,
+            "fail_if_exists": fail_if_exists,
+            "req_id": req_id or api_common.req_id,
+        }
+
+        # build files list; using a list of tuples allows multiple entries with
+        # the same field name (``files``).
+        files: list[tuple] = []
+        fobjs: list = []
+        try:
+            for path in file_paths:
+                f = open(path, "rb")
+                fobjs.append(f)
+                files.append(("files", (os.path.basename(path), f, "application/octet-stream")))
+
+            res = await api_common.make_request(
+                "POST",
+                "plugin_upload",
+                params=params,
+                token=token,
+                files=files,
+                expected_status=expected_status,
+            )
+        finally:
+            for f in fobjs:
+                try:
+                    f.close()
+                except Exception:
+                    pass
+        return res
+
+    @staticmethod
+    async def plugin_delete(
+        token: str,
+        filename: str,
+        plugin_type: str = "default",
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "filename": filename,
+            "plugin_type": plugin_type,
+            "req_id": req_id or api_common.req_id,
+        }
+        return await api_common.make_request(
+            "DELETE",
+            "plugin_delete",
+            params=params,
+            token=token,
+            body=None,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def plugin_download(
+        token: str,
+        filename: str,
+        local_path: str,
+        plugin_type: str = "default",
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> str:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "filename": filename,
+            "plugin_type": plugin_type,
+            "req_id": req_id or api_common.req_id,
+        }
+        return await api_common.download_file(
+            "plugin_download",
+            local_path,
+            params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+
+    # config administration -------------------------------------------------
+
+    @staticmethod
+    async def config_upload(
+        token: str,
+        file_path: str,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {"req_id": req_id or api_common.req_id}
+        f = open(file_path, "rb")
+        try:
+            files = {"file": (os.path.basename(file_path), f, "application/json")}
+            res = await api_common.make_request(
+                "POST",
+                "config_upload",
+                params=params,
+                token=token,
+                files=files,
+                expected_status=expected_status,
+            )
+        finally:
+            try:
+                f.close()
+            except Exception:
+                pass
+        return res
+
+    @staticmethod
+    async def config_download(
+        token: str,
+        local_path: str,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> str:
+        api_common = GulpAPICommon.get_instance()
+        params = {"req_id": req_id or api_common.req_id}
+        return await api_common.download_file(
+            "config_download",
+            local_path,
+            params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+
+    # mapping file administration -------------------------------------------------
+
+    @staticmethod
+    async def mapping_file_upload(
+        token: str,
+        file_path: str,
+        fail_if_exists: bool = False,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "fail_if_exists": fail_if_exists,
+            "req_id": req_id or api_common.req_id,
+        }
+        f = open(file_path, "rb")
+        try:
+            files = {"file": (os.path.basename(file_path), f, "application/json")}
+            res = await api_common.make_request(
+                "POST",
+                "mapping_file_upload",
+                params=params,
+                token=token,
+                files=files,
+                expected_status=expected_status,
+            )
+        finally:
+            try:
+                f.close()
+            except Exception:
+                pass
+        return res
+
+    @staticmethod
+    async def mapping_file_download(
+        token: str,
+        filename: str,
+        local_path: str,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> str:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "filename": filename,
+            "req_id": req_id or api_common.req_id,
+        }
+        return await api_common.download_file(
+            "mapping_file_download",
+            local_path,
+            params=params,
+            token=token,
+            expected_status=expected_status,
+        )
+
+    @staticmethod
+    async def mapping_file_delete(
+        token: str,
+        filename: str,
+        req_id: str = None,
+        expected_status: int = 200,
+    ) -> dict:
+        api_common = GulpAPICommon.get_instance()
+        params = {
+            "filename": filename,
+            "req_id": req_id or api_common.req_id,
+        }
+        return await api_common.make_request(
+            "DELETE",
+            "mapping_file_delete",
+            params=params,
+            token=token,
+            body=None,
+            expected_status=expected_status,
+        )
+
     @staticmethod
     async def version(
         token: str, req_id: str = None, expected_status: int = 200
