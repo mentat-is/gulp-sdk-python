@@ -124,6 +124,7 @@ class GulpAPIUtility:
             expected_status=expected_status,
         )
         return res
+
     @staticmethod
     async def request_set_completed(
         token: str,
@@ -193,20 +194,6 @@ class GulpAPIUtility:
             "GET",
             "ui_plugin_list",
             {"req_id": req_id or api_common.req_id},
-            body=None,
-            expected_status=expected_status,
-        )
-        return res
-
-    @staticmethod
-    async def ui_plugin_get(
-        plugin: str, req_id: str = None, expected_status: int = 200
-    ) -> dict:
-        api_common = GulpAPICommon.get_instance()
-        res = await api_common.make_request(
-            "GET",
-            "ui_plugin_get",
-            {"plugin": plugin, "req_id": req_id or api_common.req_id},
             body=None,
             expected_status=expected_status,
         )
